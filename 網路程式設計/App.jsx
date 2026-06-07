@@ -15,6 +15,8 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+
 const INITIAL_SHOPS = [
   { id: 1, name: "漫遊咖啡館", lat: 25.033, lng: 121.565, power: 5, wifi: 4, quiet: 3, type: "cafe", openTime: 9, closeTime: 19 },
   { id: 2, name: "程式設計實驗室", lat: 25.035, lng: 121.567, power: 4, wifi: 5, quiet: 5, type: "lab", openTime: 8, closeTime: 22 },
