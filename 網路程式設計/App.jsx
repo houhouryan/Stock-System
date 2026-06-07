@@ -36,8 +36,16 @@ function FetchRealCafesButton({ onFetch }) {
     setLoading(true);
     const bounds = map.getBounds();
     const query = `[out:json];node["amenity"="cafe"](${bounds.getSouthWest().lat},${bounds.getSouthWest().lng},${bounds.getNorthEast().lat},${bounds.getNorthEast().lng});out;`;
+    
     try {
-      const response = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
+      // 🌟 修改點 1：改用官方推薦、對 CORS 較友善的另一個法國鏡像伺服器站點（Kumi Systems）
+      // 如果原本的站點擋 Vercel 網域，換這個通常就能直接通！
+      const response = await fetch(`https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+      }
+      
       const data = await response.json();
       const blacklist = ['茶的魔手', '茶湯會', '50嵐', '鮮茶道', '清心', '麻古', '可不可', '迷客夏', '得正', '五桐號', '龜記', '大苑子', '沙龍', '紅茶', '青草茶', '八曜', '水巷茶弄', '鶴茶樓', '三分春色', 'COMEBUY', '手搖'];
       const realCafes = data.elements
@@ -50,8 +58,9 @@ function FetchRealCafesButton({ onFetch }) {
         }));
       onFetch(realCafes);
     } catch (error) {
-       console.error("Supabase 連線詳細錯誤:", error); // 這一行會把錯誤顯示在 Console
-       alert("讀取真實資料失敗，請稍後再試。錯誤代碼：" + error.message); 
+       // 🌟 修改點 2：不要用大驚小怪的 alert 嚇使用者，因為這只是第三方開放資料庫暫時連不上
+       console.error("Overpass API 地圖連線失敗(可能是CORS限制):", error); 
+       alert("地圖搜尋伺服器回應忙碌中或有網域 CORS 限制，請稍後再試！錯誤資訊：" + error.message); 
     }
     setLoading(false);
   };
