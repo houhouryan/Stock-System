@@ -38,8 +38,6 @@ function FetchRealCafesButton({ onFetch }) {
     const query = `[out:json];node["amenity"="cafe"](${bounds.getSouthWest().lat},${bounds.getSouthWest().lng},${bounds.getNorthEast().lat},${bounds.getNorthEast().lng});out;`;
     
     try {
-      // 🌟 修改點 1：改用官方推薦、對 CORS 較友善的另一個法國鏡像伺服器站點（Kumi Systems）
-      // 如果原本的站點擋 Vercel 網域，換這個通常就能直接通！
       const response = await fetch(`https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(query)}`);
       
       if (!response.ok) {
@@ -47,6 +45,13 @@ function FetchRealCafesButton({ onFetch }) {
       }
       
       const data = await response.json();
+      
+      // 防呆機制：如果這個區域真的沒有任何 OpenStreetMap 標記的咖啡廳
+      if (!data.elements || data.elements.length === 0) {
+        alert("目前這個地圖範圍內沒有找到公開的咖啡廳資料喔！");
+        return;
+      }
+
       const blacklist = ['茶的魔手', '茶湯會', '50嵐', '鮮茶道', '清心', '麻古', '可不可', '迷客夏', '得正', '五桐號', '龜記', '大苑子', '沙龍', '紅茶', '青草茶', '八曜', '水巷茶弄', '鶴茶樓', '三分春色', 'COMEBUY', '手搖'];
       const realCafes = data.elements
         .filter(el => el.tags && el.tags.name && !blacklist.some(keyword => el.tags.name.includes(keyword)))
@@ -56,13 +61,15 @@ function FetchRealCafesButton({ onFetch }) {
           openTime: Math.floor(Math.random() * 3) + 7,  
           closeTime: Math.floor(Math.random() * 5) + 18 
         }));
+        
       onFetch(realCafes);
     } catch (error) {
-       // 🌟 修改點 2：不要用大驚小怪的 alert 嚇使用者，因為這只是第三方開放資料庫暫時連不上
-       console.error("Overpass API 地圖連線失敗(可能是CORS限制):", error); 
-       alert("地圖搜尋伺服器回應忙碌中或有網域 CORS 限制，請稍後再試！錯誤資訊：" + error.message); 
+       console.error("地圖資料抓取失敗:", error); 
+       alert("搜尋伺服器回應忙碌，請稍微將地圖平移或放大，再試一次！\n原因：" + error.message); 
+    } finally {
+       // 🌟 核心修正：不管是成功還失敗，最後一定會執行這裡，把「搜尋中...」關掉！
+       setLoading(false); 
     }
-    setLoading(false);
   };
   return (
     <div style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 1000 }}>
