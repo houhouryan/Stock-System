@@ -15,7 +15,8 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+console.log("偵錯模式 - URL:", import.meta.env.VITE_SUPABASE_URL);
+console.log("偵錯模式 - KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
 
 const INITIAL_SHOPS = [
   { id: 1, name: "漫遊咖啡館", lat: 25.033, lng: 121.565, power: 5, wifi: 4, quiet: 3, type: "cafe", openTime: 9, closeTime: 19 },
@@ -48,7 +49,10 @@ function FetchRealCafesButton({ onFetch }) {
           closeTime: Math.floor(Math.random() * 5) + 18 
         }));
       onFetch(realCafes);
-    } catch (error) { alert("讀取真實資料失敗，請稍後再試。"); }
+    } catch (error) {
+       console.error("Supabase 連線詳細錯誤:", error); // 這一行會把錯誤顯示在 Console
+       alert("讀取真實資料失敗，請稍後再試。錯誤代碼：" + error.message); 
+    }
     setLoading(false);
   };
   return (
